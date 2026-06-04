@@ -1,0 +1,60 @@
+# Normalizar finales de línea automáticamente
+* text=auto
+
+# C# / .NET
+csproj     text eol=lf
+cshtml     text eol=lf
+razor      text eol=lf
+sln        text eol=lf
+props      text eol=lf
+targets    text eol=lf
+cs         text eol=lf
+
+# Web
+*.ts       text eol=lf
+*.js       text eol=lf
+*.tsx      text eol=lf
+*.jsx      text eol=lf
+*.json     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.html     text eol=lf
+*.css      text eol=lf
+*.scss     text eol=lf
+*.less     text eol=lf
+*.md       text eol=lf
+*.xml      text eol=lf
+*.config   text eol=lf
+
+# Docker / Scripts
+Dockerfile* text eol=lf
+*.dockerfile text eol=lf
+*.sh       text eol=lf
+*.ps1      text eol=lf
+*.bat      text eol=crlf
+Makefile   text eol=lf
+
+# Archivos binarios (nunca normalizar)
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.pdf      binary
+*.zip      binary
+*.tar.gz   binary
+*.gz       binary
+*.7z       binary
+*.rar      binary
+*.exe      binary
+*.dll      binary
+*.so       binary
+*.dylib    binary
+*.woff     binary
+*.woff2    binary
+*.ttf      binary
+*.eot      binary
+*.mp4      binary
+*.mp3      binary
+*.avi      binary
+*.mov      binary
