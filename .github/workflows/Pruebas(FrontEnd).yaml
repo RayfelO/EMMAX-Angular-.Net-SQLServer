@@ -1,27 +1,30 @@
-name: Pruebas Unitarias
+name: Frontend Unit Tests
 
 on:
   push:
-    branches:
-      - main  # Cambia esto según la rama que desees
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout del código fuente
-      uses: actions/checkout@v2  # Asegurarse de que el código fuente se haya clonado
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Configuración de entorno
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'  # Especifica la versión de Node.js que necesitas
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: FrontEnd/App/package-lock.json
 
-    - name: Instalación de Dependencias
-      run: npm install
-      working-directory: FrontEnd/App
+      - name: Install Dependencies
+        working-directory: FrontEnd/App
+        run: npm ci
 
-    - name: Ejecución de Pruebas Unitarias
-      run: npm test
-      working-directory: FrontEnd/App
+      - name: Run Unit Tests
+        working-directory: FrontEnd/App
+        run: npm test -- --watch=false --browsers=ChromeHeadless
