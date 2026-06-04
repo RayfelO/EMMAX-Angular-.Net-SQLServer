@@ -13,12 +13,14 @@ export class BuyComponent implements OnInit {
     IdCarrito: 0,
     Subtotal: 0,
     Impuestos: 0.18,
-    Campo: ''
+    Campo: '',
+    Signature: ''  // Agregado para almacenar la firma
   };
   metodosDePago: any[] = [];
   carritoProductos: any[] = [];
   mostrarDetalles = false;
   total: number = 0;
+  firmaGenerada: string | null = null; // Variable para almacenar la firma digital
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -27,6 +29,7 @@ export class BuyComponent implements OnInit {
     this.getCarritoProductos(1, 8);
   }
 
+  // Método para calcular el total de la compra
   calcularTotal(): void {
     let subtotal = 0;
     for (const producto of this.carritoProductos) {
@@ -34,23 +37,17 @@ export class BuyComponent implements OnInit {
     }
     this.reciboData.Subtotal = subtotal;
     this.total = subtotal + subtotal * this.reciboData.Impuestos;
-    console.log(this.total + " " + subtotal)
+    console.log(this.total + " " + subtotal);
   }
 
+  // Método para obtener los métodos de pago
   getMetodosDePago(): void {
-    // URL de la API para obtener los métodos de pago
-    const apiUrl = 'http://localhost:5230/Metodo'; // Actualiza la URL
-
-    // Obtiene el token del almacenamiento local (asume que ya está autenticado)
+    const apiUrl = 'http://localhost:5230/Metodo'; // URL de la API para obtener los métodos de pago
     const token = localStorage.getItem('token');
-
-    // Crea un encabezado con el token de autorización
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    // Realiza la solicitud HTTP para obtener los métodos de pago
     this.http.get<any[]>(apiUrl, { headers }).subscribe(
       (data: any[]) => {
-        // Almacena las opciones de método de pago en la variable metodosDePago
         console.log(data);
         this.metodosDePago = data;
       },
@@ -60,61 +57,104 @@ export class BuyComponent implements OnInit {
     );
   }
 
-
+  // Getter para mostrar los impuestos en porcentaje
   get formattedImpuestos(): string {
     return (this.reciboData.Impuestos * 100).toFixed(0) + '%';
   }
-  
+
+  // Setter para los impuestos
   set formattedImpuestos(value: string) {
-    // Convierte el valor del campo de texto a un número y almacénalo en reciboData.Impuestos
     this.reciboData.Impuestos = parseFloat(value) / 100;
   }
 
+  // Método que se ejecuta cuando se envía el formulario
   onSubmit(): void {
-    // Obtén el token almacenado en localStorage
     const token = localStorage.getItem('token');
     if (!token) {
-      // Manejar el caso en el que no haya un token
       console.error('No se encontró un token en localStorage');
       return;
     }
 
-    // Configura las cabeceras con el token
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    // Primero, obtenemos la firma de la transacción
+    this.firmarTransaccion().subscribe(
+      (signedData: any) => {
+        // Cuando recibimos la firma, la almacenamos en reciboData
+        this.firmaGenerada = signedData.signature;
+        this.reciboData.Signature = signedData.signature;
 
-    
-    // Realiza la solicitud POST al controlador
-    this.http.post('http://localhost:5230/Comprar', this.reciboData, { headers }).subscribe(
-      (response: any) => {
-        alert ('Compra hecha con exito');
-        this.router.navigateByUrl('/inicio');
+        // Imprimir la firma en la consola para depuración
+        console.log("Firma Generada (Base64):", this.firmaGenerada);
 
+        // Luego, enviamos los datos de la compra junto con la firma
+        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+        this.http.post('http://localhost:5230/Comprar', this.reciboData, { headers }).subscribe(
+          (response: any) => {
+            alert('Compra hecha con éxito');
+            this.router.navigateByUrl('/inicio');
+          },
+          (error) => {
+            alert(error.error);
+            console.error('Error:', error);
+          }
+        );
       },
       (error) => {
-        alert(error.error);
-        console.error('Error:', error);
-        
+        console.error('Error al obtener la firma', error);
       }
     );
-  }
+}
 
-  getCarritoProductos(page: number, pageSize: number): void {
-    
-    const url = `http://localhost:5230/CarritoProducto?page=${page}&pageSize=${pageSize}`;
+  // Método para solicitar la firma de la transacción
+  firmarTransaccion() {
+    const apiUrl = 'http://localhost:5230/api/transaction/sign'; // URL del endpoint de firma digital
 
-    const token = localStorage.getItem('token'); // Recupera el token almacenado en el almacenamiento local
+    const transactionData = {
+      IdMetodoPago: this.reciboData.IdMetodoPago,
+      IdCarrito: this.reciboData.IdCarrito,
+      Subtotal: this.reciboData.Subtotal,
+      Impuestos: this.reciboData.Impuestos,
+      Campo: this.reciboData.Campo
+    };
+
+    const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    this.http.get<any[]>(url, { headers })
-    .subscribe(
+    // Realizamos la solicitud POST para obtener la firma digital
+    return this.http.post<any>(apiUrl, transactionData, { headers });
+  }
+
+  // Método para obtener los productos del carrito
+  getCarritoProductos(page: number, pageSize: number): void {
+    const url = `http://localhost:5230/CarritoProducto?page=${page}&pageSize=${pageSize}`;
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.get<any[]>(url, { headers }).subscribe(
       (data: any[]) => {
-        // Maneja los datos recibidos aquí, por ejemplo, asignándolos a la propiedad carritoProductos
-        console.log(data);
         this.carritoProductos = data;
         this.calcularTotal();
       },
       (error) => {
         console.error('Error al obtener los productos del carrito', error);
+      }
+    );
+  }
+
+  // Método que se llama al hacer clic en "Generar Firma"
+  generarFirma(): void {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No se encontró un token en localStorage');
+      return;
+    }
+
+    this.firmarTransaccion().subscribe(
+      (signedData: any) => {
+        // Cuando recibimos la firma, la almacenamos
+        this.firmaGenerada = signedData.signature;
+      },
+      (error) => {
+        console.error('Error al obtener la firma', error);
       }
     );
   }

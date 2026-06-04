@@ -18,6 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 DotEnv.Load();
 
 
+// Configuración de appsettings.json
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
 // para el api
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -81,7 +84,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     }
 }*/
 builder.Services.AddDbContext<TiendaPruebaContext>(options =>
-    options.UseSqlServer(env) // en este caso usamos la varaibles de entorno
+  //  options.UseSqlServer(env) // en este caso usamos las variables de entorno
+  options.UseSqlServer(appsettings) // en este caso usamos lo puesto en appsettings
 );
 
 
@@ -95,8 +99,14 @@ builder.Services.AddGraphQLServer()
     .AddType<UsuarioType>()
     ;
 
-
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<TiendaPruebaContext>();
+    dbContext.Database.EnsureCreated(); // Genera la base de datos y las tablas
+}
+
 
 if (!app.Environment.IsDevelopment())
 {
