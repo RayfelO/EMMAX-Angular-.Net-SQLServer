@@ -14,7 +14,6 @@
 
 <div align="center">
 
-  [![Forks][forks-shield]][forks-url]
   [![Stargazers][stars-shield]][stars-url]
   [![MIT License][license-shield]][license-url]
   [![Status][status-shield]][status-url]
@@ -259,8 +258,6 @@ Este proyecto fue desarrollado como proyecto académico por **Sebastian Fernande
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[forks-shield]: https://img.shields.io/github/forks/RayfelO/EMMAX-Angular-.Net-SQLServer.svg?style=for-the-badge
-[forks-url]: https://github.com/RayfelO/EMMAX-Angular-.Net-SQLServer/network/members
 [stars-shield]: https://img.shields.io/github/stars/RayfelO/EMMAX-Angular-.Net-SQLServer.svg?style=for-the-badge
 [stars-url]: https://github.com/RayfelO/EMMAX-Angular-.Net-SQLServer/stargazers
 [license-shield]: https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge
