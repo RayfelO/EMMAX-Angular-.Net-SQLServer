@@ -1,19 +1,47 @@
-version: '3'
+version: '3.8'
 services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: emmax-sql-prod
+    restart: unless-stopped
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${SA_PASSWORD}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend-production:
     build:
-      context: ./backend/Core
+      context: ./Backend/Core
       dockerfile: Dockerfile.Backend
+    container_name: emmax-backend-prod
+    restart: unless-stopped
     ports:
       - "5230:80"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__cadenaSQL=Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TiendaPrueba;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False
-
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__cadenaSQL: ${ConnectionStrings__cadenaSQL}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
 
   frontend-production:
     build:
-      context: ./frontend/App
+      context: ./FrontEnd/App
       dockerfile: Dockerfile.Frontend
+    container_name: emmax-frontend-prod
+    restart: unless-stopped
     ports:
       - "4200:80"
+    depends_on:
+      - backend-production
+
+volumes:
+  sql_data:

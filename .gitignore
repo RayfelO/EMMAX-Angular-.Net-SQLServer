@@ -1,8 +1,79 @@
-# Archivos y directorios generados
-node_modules/
-build/
-dist/
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
 
-# Archivos sensibles (se recomienda no incluir credenciales)
+# Archivos de publicación
+publish/
+out/
+
+# Logs
+*.log
+logs/
+
+# Node / Angular
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Angular CLI
+.angular/
+dist/
+build/
+
+# Configuración de entorno (no subir credenciales)
 .env
 .env.local
+.env.*.local
+
+# Docker
+*.pid
+
+# IDEs y editores
+.idea/
+*.iml
+*.code-workspace
+.history/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos de cobertura y testing
+coverage/
+*.coverage
+.nyc_output/
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+
+# SQL Server
+*.mdf
+*.ldf
+*.ndf
+*.db
+
+# HotChocolate / GraphQL playground (si genera archivos)
+*.graphql.json
+
+# Lock files de NuGet (solo si usas PackageReference moderno no es necesario trackear)
+# project.lock.json
+# project.fragment.lock.json
+# artifacts/
+
+# JetBrains Rider
+*.sln.iml

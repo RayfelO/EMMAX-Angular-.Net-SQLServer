@@ -1,18 +1,45 @@
-version: '3'
+version: '3.8'
 services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: emmax-sql-dev
+    restart: unless-stopped
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD:-YourStrong!Passw0rd}
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data_dev:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${SA_PASSWORD:-YourStrong!Passw0rd}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend-development:
     build:
-      context: ./backend/Core
+      context: ./Backend/Core
       dockerfile: Dockerfile.Backend
+    container_name: emmax-backend-dev
     ports:
       - "5230:80"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__cadenaSQL=Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TiendaPrueba;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__cadenaSQL: Server=sqlserver;Database=${SQL_DATABASE:-TiendaPrueba};User Id=sa;Password=${SA_PASSWORD:-YourStrong!Passw0rd};Encrypt=False;TrustServerCertificate=True;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
 
   frontend-development:
     build:
-      context: ./frontend/App
+      context: ./FrontEnd/App
       dockerfile: Dockerfile.Frontend
+    container_name: emmax-frontend-dev
     ports:
       - "4200:80"
+    depends_on:
+      - backend-development
+
+volumes:
+  sql_data_dev:
